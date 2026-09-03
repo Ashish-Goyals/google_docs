@@ -130,7 +130,7 @@ body {
 
     .selectedCell:after {
       background: var(#959596);
-      content: "";
+      content: '';
       left: 0;
       right: 0;
       top: 0;
@@ -216,7 +216,7 @@ body {
     }
   }
   /* Task list specific styles */
-  ul[data-type="taskList"] {
+  ul[data-type='taskList'] {
     list-style: none;
     margin-left: 0;
     padding: 0;
@@ -236,11 +236,11 @@ body {
       }
     }
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       cursor: pointer;
     }
 
-    ul[data-type="taskList"] {
+    ul[data-type='taskList'] {
       margin: 0;
     }
   }
