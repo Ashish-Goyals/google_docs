@@ -13,8 +13,9 @@ import {
   ListTodoIcon,
   RemoveFormattingIcon,
   ChevronDownIcon,
+  HighlighterIcon,
 } from 'lucide-react';
-
+import { type ColorResult, SketchPicker } from 'react-color';
 import { useEditorStore } from '@/store/use-editor-store';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -40,7 +41,7 @@ const FontFamilyButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="h-7 w-[120px] shrink-0 flex items-center justify-between rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+        <button className="h-7 w-[90px] sm:w-[120px] shrink-0 flex items-center justify-between rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
           <span className="truncate">
             {editor?.getAttributes('textStyle').fontFamily || 'Arial'}
           </span>
@@ -49,7 +50,7 @@ const FontFamilyButton = () => {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
+      <DropdownMenuContent className="p-1 flex flex-col gap-y-1 max-h-[300px] overflow-y-auto">
         {fonts.map(({ label, value }) => (
           <DropdownMenuItem
             key={value}
@@ -120,14 +121,14 @@ const HeadingLevelButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+        <button className="h-7 min-w-7 max-w-[110px] sm:max-w-none shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
           <span className="truncate">{getCurrentHeading()}</span>
 
           <ChevronDownIcon className="ml-2 size-4 shrink-0" />
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="p-1 flex flex-col gap-y-1">
+      <DropdownMenuContent className="p-1 flex flex-col gap-y-1 max-h-[300px] overflow-y-auto">
         {headings.map(({ label, value, fontSize }) => {
           const isActive =
             value === 0
@@ -165,6 +166,55 @@ const HeadingLevelButton = () => {
   );
 };
 
+const TextColorButton = () => {
+  const { editor } = useEditorStore();
+
+  const value = editor?.getAttributes('textStyle').color || '#000000';
+
+  const onChange = (color: ColorResult) => {
+    editor?.chain().focus().setColor(color.hex).run();
+  };
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+          <span className="text-xs">A</span>
+          <div className="h-0.5 w-full" style={{ backgroundColor: value }} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="border-0 p-0 max-w-[calc(100vw-16px)]"
+        align="start"
+      >
+        <SketchPicker color={value} onChange={onChange} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const HighlightColorButton = () => {
+  const { editor } = useEditorStore();
+  const value = editor?.getAttributes('highlight').color || '#000000';
+
+  const onChange = (color: ColorResult) => {
+    editor?.chain().focus().setHighlight({ color: color.hex }).run();
+  };
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+          <HighlighterIcon className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="border-0 p-0 max-w-[calc(100vw-16px)]"
+        align="start"
+      >
+        <SketchPicker color={value} onChange={onChange} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 interface ToolbarButtonProps {
   onClick?: () => void;
   isActive?: boolean;
@@ -177,13 +227,15 @@ const ToolbarButton = ({
   icon: Icon,
 }: ToolbarButtonProps) => {
   return (
-    <button type="button" onClick={onClick}>
-      <Icon
-        className={cn(
-          'text-sm h-7 min-w-7 flex items-center justify-center rounded-sm hover:bg-neutral-200/80',
-          isActive && 'bg-neutral-200/80'
-        )}
-      />
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'text-sm h-7 min-w-7 shrink-0 flex items-center justify-center rounded-sm hover:bg-neutral-200/80',
+        isActive && 'bg-neutral-200/80'
+      )}
+    >
+      <Icon className="size-4" />
     </button>
   );
 };
@@ -272,23 +324,39 @@ const Toolbar = () => {
   ];
 
   return (
-    <div className="bg-[#F1F4F9] px-2.5 py-0.5 rounded-[24px] min-h-[40px] flex items-center gap-x-0.5 overflow-x-auto">
+    <div
+      className={cn(
+        'bg-[#F1F4F9] w-full max-w-full px-1.5 sm:px-2.5 py-0.5',
+        'rounded-[24px] min-h-[40px] flex items-center gap-x-0.5',
+        'overflow-x-auto flex-nowrap',
+        '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+      )}
+    >
       {/* Undo / Redo / Print / Spell Check */}
       {sections[0].map((item) => (
         <ToolbarButton key={item.label} {...item} />
       ))}
 
-      <Separator orientation="vertical" className="h-6 bg-neutral-300" />
+      <Separator
+        orientation="vertical"
+        className="h-6 shrink-0 bg-neutral-300"
+      />
 
       {/* Font Family */}
       <FontFamilyButton />
 
-      <Separator orientation="vertical" className="h-6 bg-neutral-300" />
+      <Separator
+        orientation="vertical"
+        className="h-6 shrink-0 bg-neutral-300"
+      />
 
       {/* Heading */}
       <HeadingLevelButton />
 
-      <Separator orientation="vertical" className="h-6 bg-neutral-300" />
+      <Separator
+        orientation="vertical"
+        className="h-6 shrink-0 bg-neutral-300"
+      />
 
       {/* TODO: Font Size */}
 
@@ -297,10 +365,13 @@ const Toolbar = () => {
         <ToolbarButton key={item.label} {...item} />
       ))}
 
-      {/* TODO: Text Color */}
+      <TextColorButton />
       {/* TODO: Highlight Color */}
-
-      <Separator orientation="vertical" className="h-6 bg-neutral-300" />
+      <HighlightColorButton />
+      <Separator
+        orientation="vertical"
+        className="h-6 shrink-0 bg-neutral-300"
+      />
 
       {/* TODO: Link */}
       {/* TODO: Image */}
@@ -308,7 +379,10 @@ const Toolbar = () => {
       {/* TODO: Line Height */}
       {/* TODO: List */}
 
-      <Separator orientation="vertical" className="h-6 bg-neutral-300" />
+      <Separator
+        orientation="vertical"
+        className="h-6 shrink-0 bg-neutral-300"
+      />
 
       {/* Comment / Todo / Remove Formatting */}
       {sections[2].map((item) => (
