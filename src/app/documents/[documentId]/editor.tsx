@@ -16,6 +16,7 @@ import TextStyle from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { useEditorStore } from '@/store/use-editor-store';
+import Link from '@tiptap/extension-link';
 const Editor = () => {
   const { setEditor } = useEditorStore();
   const editor = useEditor({
@@ -30,6 +31,11 @@ const Editor = () => {
     },
     extensions: [
       StarterKit,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: 'https',
+      }),
       TaskItem.configure({
         nested: true,
       }),

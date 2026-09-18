@@ -2,6 +2,7 @@
 
 import {
   LucideIcon,
+  Link2Icon,
   Undo2Icon,
   Redo2Icon,
   PrinterIcon,
@@ -14,12 +15,24 @@ import {
   RemoveFormattingIcon,
   ChevronDownIcon,
   HighlighterIcon,
+  ImageIcon,
+  UploadIcon,
+  SearchIcon,
 } from 'lucide-react';
 import { type ColorResult, SketchPicker } from 'react-color';
 import { useEditorStore } from '@/store/use-editor-store';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -215,6 +228,115 @@ const HighlightColorButton = () => {
     </DropdownMenu>
   );
 };
+
+const LinkButton = () => {
+  const { editor } = useEditorStore();
+
+  const [value, setValue] = useState(editor?.getAttributes('link').href || '');
+
+  const onChange = (href: string) => {
+    editor?.chain().focus().extendMarkRange('link').setLink({ href }).run();
+    setValue('');
+  };
+  return (
+    <DropdownMenu
+      onOpenChange={(open) => {
+        if (open) {
+          setValue(editor?.getAttributes('link').href || '');
+        }
+      }}
+    >
+      <DropdownMenuTrigger asChild>
+        <button className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+          <Link2Icon className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="p-2.5 flex items-center gap-x-2">
+        <Input
+          placeholder="https://example.com"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <Button onClick={() => onChange(value)}>Apply</Button>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const ImageButton = () => {
+  const { editor } = useEditorStore();
+
+  const [imageUrl, setImageUrl] = useState('');
+  const [isDialogueOpen, setIsDialogueOpen] = useState(false);
+
+  const onChange = (src: string) => {
+    editor?.chain().focus().setImage({ src }).run();
+    setImageUrl('');
+  };
+
+  const onUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        onChange(imageUrl);
+      }
+    };
+    input.click();
+  };
+
+  const handleImageUrlSubmit = () => {
+    if (imageUrl) {
+      onChange(imageUrl);
+      setImageUrl('');
+      setIsDialogueOpen(false);
+    }
+  };
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+            <ImageIcon className="size-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={onUpload}>
+            <UploadIcon className="size-4 mr-2" />
+            Upload
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsDialogueOpen(true)}>
+            <SearchIcon className="size-4 mr-2" />
+            Search
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={isDialogueOpen} onOpenChange={setIsDialogueOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Image URL</DialogTitle>
+          </DialogHeader>
+
+          <Input
+            placeholder="https://example.com/image.jpg"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleImageUrlSubmit()}
+          />
+
+          <DialogFooter>
+            <Button onClick={handleImageUrlSubmit}>Insert</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 interface ToolbarButtonProps {
   onClick?: () => void;
   isActive?: boolean;
@@ -374,7 +496,9 @@ const Toolbar = () => {
       />
 
       {/* TODO: Link */}
+      <LinkButton />
       {/* TODO: Image */}
+      <ImageButton />
       {/* TODO: Align */}
       {/* TODO: Line Height */}
       {/* TODO: List */}
