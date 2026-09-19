@@ -18,6 +18,9 @@ import {
   ImageIcon,
   UploadIcon,
   SearchIcon,
+  AlignLeftIcon,
+  AlignCenterIcon,
+  AlignJustifyIcon,
 } from 'lucide-react';
 import { type ColorResult, SketchPicker } from 'react-color';
 import { useEditorStore } from '@/store/use-editor-store';
@@ -334,6 +337,52 @@ const ImageButton = () => {
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+const AlignButton = () => {
+  const { editor } = useEditorStore();
+
+  const alignments = [
+    {
+      label: 'Align Left',
+      value: 'left',
+      icon: AlignLeftIcon,
+    },
+    {
+      label: 'Align Center',
+      value: 'center',
+      icon: AlignCenterIcon,
+    },
+    {
+      label: 'Align Justify',
+      value: 'justify',
+      icon: AlignJustifyIcon,
+    },
+  ];
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="h-7 min-w-7 shrink-0 flex flex-col items-center justify-center rounded-sm hover:bg-neutral-200/80 px-1.5 overflow-hidden text-sm">
+          <AlignLeftIcon className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className=" p-0 ">
+        {alignments.map(({ label, value, icon: Icon }) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={() => editor?.chain().focus().setTextAlign(value).run()}
+            className={cn(
+              'flex items-center gap-x-2 px-2 py-1 rounded-sm cursor-pointer',
+              editor?.isActive({ textAlign: value }) && 'bg-neutral-200/80'
+            )}
+          >
+            <Icon className="size-4" />
+            <span className="text-sm">{label}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
